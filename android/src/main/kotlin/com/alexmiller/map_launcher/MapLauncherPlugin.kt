@@ -43,7 +43,7 @@ class MapLauncherPlugin : MethodCallHandler, FlutterPlugin {
 
   private fun getInstalledMaps(): List<MapModel> {
       val installedApps = context?.packageManager?.getInstalledApplications(0)
-      val installedMaps = maps.filter { map -> installedApps?.any { app -> app.packageName == map.packageName } ?? false }
+      val installedMaps = maps.filter { map -> (installedApps?.any { app -> app.packageName == map.packageName }) ?? false }
       return installedMaps
   }
 
@@ -54,9 +54,11 @@ class MapLauncherPlugin : MethodCallHandler, FlutterPlugin {
 
   private fun launchGoogleMaps(url: String) {
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+    val app = context;
+
     intent.setPackage("com.google.android.apps.maps")
-    if (context != null && intent.resolveActivity(context.packageManager) != null) {
-      context?.startActivity(intent)
+    if (app != null && intent.resolveActivity(app.packageManager) != null) {
+      app?.startActivity(intent)
     }
   }
 
