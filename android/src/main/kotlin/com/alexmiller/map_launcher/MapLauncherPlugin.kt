@@ -43,7 +43,7 @@ class MapLauncherPlugin : MethodCallHandler, FlutterPlugin {
 
   private fun getInstalledMaps(): List<MapModel> {
       val installedApps = context?.packageManager?.getInstalledApplications(0)
-      val installedMaps = maps.filter { map -> (installedApps?.any { app -> app.packageName == map.packageName }) ?? false }
+      val installedMaps = maps.filter { map -> installedApps!!.any { app -> app.packageName == map.packageName } }
       return installedMaps
   }
 
