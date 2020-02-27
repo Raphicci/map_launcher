@@ -22,7 +22,7 @@ private class MapModel(val mapType: MapType, val mapName: String, val packageNam
 
 class MapLauncherPlugin : MethodCallHandler, FlutterPlugin {
 
-  private val context: Context? = null;
+  private var context: Context? = null;
 
   private val maps = listOf(
     MapModel(MapType.google, "Google Maps", "com.google.android.apps.maps"),
@@ -34,7 +34,7 @@ class MapLauncherPlugin : MethodCallHandler, FlutterPlugin {
   )
 
   override fun onAttachedToEngine(binding: FlutterPluginBinding) {
-    val channel = MethodChannel(registrar.messenger(), "map_launcher")
+    val channel = MethodChannel(binding.getBinaryMessenger(), "map_launcher")
     context = binding.getApplicationContext()
     channel.setMethodCallHandler(this)
   }
@@ -43,7 +43,7 @@ class MapLauncherPlugin : MethodCallHandler, FlutterPlugin {
 
   private fun getInstalledMaps(): List<MapModel> {
       val installedApps = context?.packageManager?.getInstalledApplications(0)
-      val installedMaps = maps.filter { map -> installedApps?.any { app -> app.packageName == map.packageName } }
+      val installedMaps = maps.filter { map -> installedApps?.any { app -> app.packageName == map.packageName } ?? false }
       return installedMaps
   }
 
