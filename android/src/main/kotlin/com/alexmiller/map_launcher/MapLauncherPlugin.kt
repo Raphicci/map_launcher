@@ -19,18 +19,9 @@ private class MapModel(val mapType: MapType, val mapName: String, val packageNam
   }
 }
 
-class MapLauncherPlugin(private val context: Context, private val activity: Activity, private val pm: PackageManager) : MethodCallHandler {
-  companion object {
-    @JvmStatic
-    fun registerWith(registrar: Registrar) {
-      val channel = MethodChannel(registrar.messenger(), "map_launcher")
-      val context = registrar.activeContext()
-      val activity = registrar.activity()
-      val pm = context.getPackageManager()
+class MapLauncherPlugin : MethodCallHandler, FlutterPlugin {
 
-      channel.setMethodCallHandler(MapLauncherPlugin(context, activity, pm))
-    }
-  }
+  private val context: Context? = null;
 
   private val maps = listOf(
     MapModel(MapType.google, "Google Maps", "com.google.android.apps.maps"),
@@ -41,12 +32,19 @@ class MapLauncherPlugin(private val context: Context, private val activity: Acti
     MapModel(MapType.yandexMaps, "Yandex Maps", "ru.yandex.yandexmaps")
   )
 
-  private fun getInstalledMaps(): List<MapModel> {
-      val installedApps = pm.getInstalledApplications(0)
-      val installedMaps = maps.filter { map -> installedApps.any { app -> app.packageName == map.packageName } }
-      return installedMaps
+  override fun onAttachedToEngine(binding: FlutterPluginBinding) {
+    val channel = MethodChannel(registrar.messenger(), "map_launcher")
+    context = binding.getApplicationContext()
+    channel.setMethodCallHandler(this)
   }
 
+  override fun onDetachedFromEngine(binding: FlutterPluginBinding) {}
+
+  private fun getInstalledMaps(): List<MapModel> {
+      val installedApps = context?.packageManager?.getInstalledApplications(0)
+      val installedMaps = maps.filter { map -> installedApps?.any { app -> app.packageName == map.packageName } }
+      return installedMaps
+  }
 
   private fun isMapAvailable(type: String): Boolean {
     val installedMaps = getInstalledMaps()
@@ -56,8 +54,8 @@ class MapLauncherPlugin(private val context: Context, private val activity: Acti
   private fun launchGoogleMaps(url: String) {
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
     intent.setPackage("com.google.android.apps.maps")
-    if (intent.resolveActivity(context.packageManager) != null) {
-      context.startActivity(intent)
+    if (context != null && intent.resolveActivity(context.packageManager) != null) {
+      context?.startActivity(intent)
     }
   }
 
@@ -70,7 +68,7 @@ class MapLauncherPlugin(private val context: Context, private val activity: Acti
         if (foundMap != null) {
           intent.setPackage(foundMap.packageName)
         }
-        context.startActivity(intent)
+        context?.startActivity(intent)
       }
     }
   }
